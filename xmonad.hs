@@ -27,5 +27,5 @@ main = do
     , borderWidth = 3
     } `additionalKeys`
     [ ((mod1Mask, xK_b), spawn "vimb")
-    , ((mod1Mask .|. shiftMask, xK_l), spawn "gnome-screensaver-command -l")
+    , ((mod1Mask .|. shiftMask, xK_l), spawn "echo hi")
     ]
