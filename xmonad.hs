@@ -1,5 +1,4 @@
 import System.IO
-
 import XMonad
 import XMonad.Hooks.DynamicLog
 import XMonad.Util.Run (spawnPipe)
@@ -12,20 +11,32 @@ term :: String
 term = "urxvt"
 
 
+myLogHook :: Handle -> X ()
+myLogHook bar = dynamicLogWithPP xmobarPP
+  { ppOutput = hPutStrLn bar
+  , ppTitle = xmobarColor "green" "" . shorten 50
+  }
+
+
+myLayoutHook = smartSpacing 10 $ avoidStruts $ layoutHook defaultConfig
+
+
+myKeyMap :: [((KeyMask, KeySym), X ())]
+myKeyMap = 
+  [ ((mod1Mask, xK_b), spawn "vimb")
+  , ((mod1Mask .|. shiftMask, xK_p), spawn "emacs")
+  ]
+
+
+defaults bar = def
+  { logHook = myLogHook bar
+  , layoutHook = myLayoutHook
+  , manageHook = manageDocks <+> manageHook def
+  , handleEventHook = handleEventHook def <+> docksEventHook
+  , terminal = term
+  , borderWidth = 3
+  } `additionalKeys` myKeyMap
+
+
 main :: IO ()
-main = do
-  xmproc <- spawnPipe "xmobar -x 0"
-  xmonad $ def
-    { logHook = dynamicLogWithPP xmobarPP
-                  { ppOutput = hPutStrLn xmproc
-                  , ppTitle = xmobarColor "green" "" . shorten 50
-                  }
-    , layoutHook = smartSpacing 10 $ avoidStruts $ layoutHook defaultConfig
-    , manageHook = manageDocks <+> manageHook defaultConfig
-    , handleEventHook = handleEventHook defaultConfig <+> docksEventHook
-    , terminal = term
-    , borderWidth = 3
-    } `additionalKeys`
-    [ ((mod1Mask, xK_b), spawn "vimb")
-    , ((mod1Mask .|. shiftMask, xK_l), spawn "echo hi")
-    ]
+main = xmonad =<< defaults <$> spawnPipe "xmobar"
